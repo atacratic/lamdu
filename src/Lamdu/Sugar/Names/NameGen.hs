@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Lamdu.Sugar.Names.NameGen
     ( NameGen, initial
-    , existingName, newName
+    , existingName, newName, newTypeVarName
     ) where
 
 import           Control.Arrow ((&&&))
@@ -17,6 +17,7 @@ data NameGen g = NameGen
     { _ngUnusedNames :: [Text]
     , _ngUnusedFuncNames :: [Text]
     , _ngUnusedActionNames :: [Text]
+    , _ngUnusedTypeVarNames :: [Text]
     , _ngUsedNames :: Map g Text
     }
 Lens.makeLenses ''NameGen
@@ -26,7 +27,8 @@ initial =
     NameGen
     { _ngUnusedNames = numberCycle ["x", "y", "z", "w", "u", "v"]
     , _ngUnusedFuncNames = numberCycle ["f", "g", "h"]
-    , _ngUnusedActionNames = numberCycle ["a", "b", "c"]
+    , _ngUnusedActionNames = numberCycle ["act"]
+    , _ngUnusedTypeVarNames = numberCycle ["a", "b", "c", "d", "e"]
     , _ngUsedNames = Map.empty
     }
     where
@@ -45,6 +47,9 @@ newName varInfo =
     VarFunction -> ngUnusedFuncNames
     VarAction -> ngUnusedActionNames
     & newNameOf
+
+newTypeVarName :: Ord g => (Text -> Bool) -> g -> State (NameGen g) Text
+newTypeVarName = newNameOf ngUnusedTypeVarNames
 
 newNameOf ::
     Ord g =>
